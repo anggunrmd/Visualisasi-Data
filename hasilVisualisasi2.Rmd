@@ -1,0 +1,130 @@
+---
+title: "Visualisasi data dengan ggplot"
+author: "Anggun Ramadayanti"
+date: "2025-02-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Install dan load
+
+```{r}
+library(ggplot2)
+library(readxl)
+library(ggthemes)
+library(gridExtra)
+```
+
+## Input Data
+Data diinput dari Microsoft Excel dengan syntax sebagai berikut:
+
+```{r}
+setwd("C:/Users/acer/Documents/Excel")
+data <- read_excel("data_tren_penggunaan_ai.xlsx")
+head(data)
+```
+
+# 1. Pie Chart
+Dari data sampel yang ada di dalam file excel akan disajikan visualisasi data dalam bentuk Pie Chart. Berikut terlampir hasil visualisasi datanya :
+
+```{r}
+pie_chart <- ggplot(data, aes(x = "", fill = Industri)) +
+geom_bar(width = 1) +
+coord_polar("y", start = 0) +
+theme_minimal() +
+labs(title = "Distribusi Industri") +
+theme(axis.text.x = element_blank())
+
+pie_chart
+```
+Berdasarkan hasil visualisai Pie Chart di atas, dapat terlihat bahwa sektor industri tertentu mendominasi tren penggunaan AI dalam dunia kerja. Distribusi ini menunjukkan bahwa sektor teknologi dan keuangan memiliki adopsi AI tertinggi. Sementara itu, sektor kesehatan dan manufaktur juga menunjukkan peningkatan signifikan dalam penggunaan AI. Sebaliknya, industri pendidikan dan pertanian memiliki adopsi AI yang lebih rendah. 
+
+
+# 2. Bar Chart
+Dari data sampel yang ada di dalam file excel akan disajikan visualisasi data dalam bentuk Bar Chart. Berikut terlampir hasil visualisasi datanya :
+
+```{r}
+bar_chart <- ggplot(data, aes(x = `Tingkat Penggunaan AI`, fill = `Tingkat Penggunaan AI`)) +
+geom_bar() +
+theme_minimal() +
+labs(title = "Distribusi Tingkat Penggunaan AI", x = "Tingkat Penggunaan AI", y = "Frekuensi")
+
+bar_chart
+```
+
+Dari hasil viasualisasi dengan Bar Chart ini, kita bisa mengamati bagaimana distribusi penggunaan AI di berbagai sektor industri. Sebagian besar sektor industri memiliki jumlah penggunaan AI tertinggi, menunjukkan tren penggunaan AI yang kuat. Sebaliknya, hanya sedikit sektor industri yang menggunakan AI pada tingkat rendah. Jika diuji lebih lanjut, distribusi ini dapat menunjukkan adanya faktor yang mendorong individu untuk lebih banyak menggunakan AI dibandingkan membatasi penggunaannya.
+
+# 3. Dot Plot
+Dari data sampel yang ada di dalam file excel akan disajikan visualisasi data dalam bentuk Dot Plot. Berikut terlampir hasil visualisasi datanya :
+
+```{r}
+dot_plot <- ggplot(data, aes(x = `Lama Bekerja (tahun)`, y = `Efisiensi Kerja Sebelum AI`)) +
+geom_point(color = "blue", size = 2) +
+theme_minimal() +
+labs(title = "Dot Plot: Lama Bekerja vs. Efisiensi Sebelum AI", x = "Lama Bekerja (tahun)", y = "Efisiensi Sebelum AI")
+
+dot_plot
+```
+
+Dari hasil visualisasi menggunakan Dot Plot ini menunjukkan distribusi penggunaan AI di berbagai industri. Setiap titik merepresentasikan jumlah penggunaan AI dalam industri tertentu, memungkinkan kita untuk melihat pola penyebaran dan variasi adopsi AI di berbagai sektor.Datanya tersebar secara acak tanpa ada bagian yang mencolok, yang menunjukkan bahwa lamanya seseorang bekerja tidak secara langsung mempengaruhi efisiensi sebelum penggunaan AI.
+
+# 4. Steam and Leaf Plot
+Dari data sampel yang ada di dalam file excel akan disajikan visualisasi data dalam bentuk Stem and Leaf Plot. Berikut terlampir hasil visualisasi datanya :
+
+```{r}
+stem(data$`Lama Bekerja (tahun)`)
+```
+Dari hasil visualisasi menggunakan Stem and Leaf Plot memberikan tampilan numerik yang ringkas mengenai distribusi data penggunaan AI, bahwa mayoritas data berkumpul di rentang nilai 0.1 hingga 1.0, menunjukkan konsentrasi pada angka - angka kecil. Sebagian besar individu memiliki durasi kerja yang lebih singkat. Meskipun data menyebar hingga nilai 2.9, penyebaran data cenderung lebih jarang pada nilai - nilai yang lebih tinggi. Secara keseluruhan, data ini menunjukkan bahwa sebagian besar orang memiliki durasi kerja yang relatif pendek, dengan sedikit orang yang memiliki durasi kerja yang lebih panjang.
+
+# 5. Histogram
+Dari data sampel yang ada di dalam file excel akan disajikan visualisasi data dalam bentuk Histogram. Berikut terlampir hasil visualisasi datanya :
+
+```{r}
+histogram <- ggplot(data, aes(x = `Frekuensi Penggunaan AI per Minggu`)) +
+geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
+theme_minimal() +
+labs(title = "Histogram: Frekuensi Penggunaan AI per Minggu", x = "Frekuensi", y = "Jumlah Individu")
+
+histogram
+```
+Dari hasil visualisasi menggunakan Histogram ini membantu kita memahami bagaimana data penggunaan AI tersebar, dan dapat disimpulkan bahwa sebagian besar individu menggunakan AI sekitar 10-20 kali per minggu. Namun, terdapat variasi penggunaan yang cukup besar, menunjukkan bahwa tidak semua individu memiliki kebiasaan yang sama dalam menggunakan AI. Tidak ditemukan pencilan yang mencolok, sehingga distribusi data terlihat cukup normal dengan penyebaran yang luas.
+
+# 6. Boxplot
+Dari data sampel yang ada di dalam file excel akan disajikan visualisasi data dalam bentuk Box Plot. Berikut terlampir hasil visualisasi datanya :
+
+```{r}
+boxplot_data <- ggplot(data) +
+geom_boxplot(aes(y = `Lama Bekerja (tahun)`, fill = "lama bekerja (tahun"), alpha = 0.6) +
+theme_minimal() +
+labs(title = "Boxplot: Lama Bekerja dalam tahun", fill = "Kondisi")
+
+boxplot_data
+```
+Dari hasil visualisasi menggunakan Box Plot di atas dapat disimpulkan bahwa lamanya karyawan bekerja itu beragam, dengan rata - rata sekitar 10 tahun. Sebagian besar karyawan bekerja antara 5 - 25 tahun. Ada yang bekerja lebih singkat atau lebih lama, tapi tidak ada yang terlalu jauh dari rata - rata. Ini menunjukkan bahwa kebanyakan karyawan punya pengalaman kerja yang cukup lama.
+
+
+# 7. Density Plot
+Dari data sampel yang ada di dalam file excel akan disajikan visualisasi data dalam bentuk Density Plot. Berikut terlampir hasil visualisasi datanya :
+
+```{r}
+density_plot <- ggplot(data, aes(x = `Efisiensi Kerja Sesudah AI`,fill = "Efisiensi")) +
+geom_density(alpha = 0.5) +
+theme_minimal() +
+labs(title = "Density Plot: Efisiensi Kerja Sesudah AI", x = "Efisiensi", y = "Density")
+density_plot
+```
+Dari hasil visualisasi menggunakan Density Plot ini, kita dapat melihat apakah ada puncak distribusi yang jelas, dapat disimpulkan bahwa efisiensi kerja setelah menggunakan AI umumnya memang tinggi, dengan sebagian besar data berkumpul di kisaran 70 - 90. Puncak kepadatan data menunjukkan bahwa banyak individu memiliki efisiensi sekitar 80. Sebaran data cukup lebar, dimulai dari sekitar 50 hingga mendekati 100, yang menunjukkan adanya variasi efisiensi antar individu.
+
+
+# Tampilan keseluruhan visualiasi data
+```{r}
+grid.arrange(pie_chart, bar_chart, dot_plot, histogram, boxplot_data, density_plot, ncol = 2)
+```
+
+
+
+
+
