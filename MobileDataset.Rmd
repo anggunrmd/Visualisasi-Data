@@ -1,0 +1,206 @@
+---
+title: "Tugas ProStat"
+author: "Anggun Ramadayanti"
+date: "2025-03-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Install dan load
+
+```{r}
+library(ggplot2)
+library(readxl)
+library(randomcoloR)
+library(dplyr)
+library(scales)
+```
+
+## Input Data
+Data diinput dari Microsoft Excel dengan syntax sebagai berikut:
+
+```{r}
+data <- readxl::read_excel("C:/Users/acer/Documents/Excel/MobilesDataset(2025).xlsx")
+head(data)
+
+colnames(data) <- trimws(colnames(data)) # Bersihkan nama kolom
+brand_counts <- table(data$`Company Name`) # Buat data merek HP untuk Pie Chart & Bar Chart
+brand_df <- as.data.frame(brand_counts)
+colnames(brand_df) <- c("Brand", "Count")
+data$`Launched Price (USA)` <- as.numeric(gsub("[^0-9.]", "", data$`Launched Price (USA)`))
+data$Price_USD <- as.numeric(gsub("[^0-9.]", "", data$`Launched Price (USA)`)) # Hapus karakter selain angka
+data$Price_USD[data$Price_USD == 0 | is.na(data$Price_USD)] <- median(data$Price_USD, na.rm = TRUE)
+colnames(data) <- trimws(colnames(data))
+data$`Launched Price (Dubai)` <- gsub("[^0-9.]", "", data$`Launched Price (Dubai)`)
+data$`Launched Price (Dubai)` <- as.numeric(data$`Launched Price (Dubai)`)
+data$`Launched Year` <- as.numeric(data$`Launched Year`)
+```
+
+# 1. Pie Chart
+Dari data sampel yang ada di dalam file excel akan disajikan visualisasi data dalam bentuk Pie Chart. Berikut terlampir hasil visualisasi datanya:
+
+```{r fig.height=7, fig.width=10}
+# Definisikan warna sebelum dipakai
+palette_colors <- distinctColorPalette(length(unique(brand_df$Brand)))
+
+ggplot(brand_df, aes(x = "", y = Count, fill = Brand)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar(theta = "y") +
+  scale_fill_manual(values = palette_colors) +
+  theme_void() +
+  labs(title = "Distribusi Merek HP") +
+  geom_text(aes(label = percent(Count / sum(Count), accuracy = 0.1)), 
+            position = position_stack(vjust = 0.5), size = 5)
+```
+
+Dari hasil visualisasi di atas tersebut dapat dijelaskan bahwa HP OPPO merupakan merek yang paling banyak distribusinya dalam dataset dengan persentase sebesar 13.9% sedangkan distribusi merek HP yang paling sedikit dalam dataset adalah Poco dengan persentase sebesar 0.2%. 
+
+# 2.Bar Chart
+Dari data sampel yang ada di dalam file excel akan disajikan visualisasi data dalam bentuk Bar Chart. Berikut terlampir hasil visualisasi datanya:
+
+```{r}
+data <- data %>% rename(Merek = `Company Name`, RAM = RAM)
+data$RAM <- gsub("[^0-9.]", "", data$RAM)
+data$RAM <- as.numeric(data$RAM)
+
+# Filter dan hitung rata-rata
+avg_ram <- data %>%  
+  filter(!is.na(RAM)) %>%  # Hilangkan nilai NA hasil konversi
+  group_by(Merek) %>% 
+  summarise(RataRataRAM = mean(RAM, na.rm = TRUE)) %>% 
+  arrange(desc(RataRataRAM))
+
+ggplot(avg_ram, aes(x = reorder(Merek, RataRataRAM), y = RataRataRAM, fill = Merek)) + 
+  geom_bar(stat = "identity", show.legend = FALSE) + 
+  coord_flip() + 
+  labs(title = "Rata-rata RAM per Merek", x = "Merek", y = "Rata-rata RAM (GB)") + 
+  theme_minimal()
+```
+
+Berdasarkan Bar Plot visualisasi data rata-rata RAM berdasarkan merek HP dapat disimpulkan bahwa kategori HP dengan RAM terbanyak adalah Huawei yang mendekati 50GB. Kategori RAM merek HP Xiaomi, OnePlus, dan Oppo mengikuti rata-rata RAM sekitar 6-10 GB, sementara Nokia dan Apple memiliki RAM terendah, sekitar 2-4 GB. 
+
+# 3. Histogram
+Dari data sampel yang ada di dalam file excel akan disajikan visualisasi data dalam bentuk Histogram. Berikut terlampir hasil visualisasi datanya:
+
+```{r}
+ggplot(data[data$Price_USD < 5000, ], aes(x = Price_USD)) +
+  geom_histogram(binwidth = 50, fill = "steelblue", color = "white") +
+  theme_minimal() +
+  labs(title = "Distribusi Harga HP (<$5000)", x = "Harga (USD)", y = "Frekuensi") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Dari Histogram distribusi harga ponsel, dapat disimpulkan bahwa mayoritas ponsel dalam dataset berada dalam kategori harga terjangkau yakni di bawah $500. Frekuensi tertinggi dapat diperkirakan pada kisaran $100 hingga $300. Maka, dapat ditarik kesimpulan bahwa jumlah ponsel semakin berkurang seiring dengan meningkatnya harga,dapat dilihat dari visualisasi data bahwa sangat sedikit perangkat di atas $1000.
+
+# 4. Density Plot
+Dari data sampel yang ada di dalam file excel akan disajikan visualisasi data dalam bentuk Density Plot. Berikut terlampir hasil visualisasi datanya:
+
+```{r}
+data_clean <- data %>% filter(!is.na(`Launched Price (Dubai)`) & `Launched Price (Dubai)` > 0)
+
+# Plot density
+if (nrow(data_clean) > 1) {
+  ggplot(data_clean, aes(x = `Launched Price (Dubai)`)) +
+    geom_density(fill = "steelblue", alpha = 0.5) +
+    labs(title = "Distribusi Harga Peluncuran di Dubai", x = "Harga Peluncuran (AED)", y = "Density") +
+    theme_minimal()
+} else {
+  print("Tidak cukup data untuk membuat density plot.")
+}
+```
+
+Dari Density Plot, menunjukkan bahwa sebagian besar harga peluncuran perangkat berada di kisaran 0 hingga 3000 AED dengan puncak kepadatan data tertinggi di rentang 100-200. Setelahnya, distribusi menurun secara bertahap dengan sedikit lonjakan di sekitar 4000-6000 AED. Harga di atas 6000 AED lebih jarang menandakan bahwa hanya sedikit perangkat yang dirilis dengan harga sangat tinggi.
+
+# 5.Boxplot
+Dari data sampel yang ada di dalam file excel akan disajikan visualisasi data dalam bentuk Box Plot. Berikut terlampir hasil visualisasi datanya:
+
+```{r}
+data_clean_year <- data %>% filter(!is.na(`Launched Year`) & `Launched Year` > 0)
+
+# Plot boxplot
+if (nrow(data_clean_year) > 1) {
+  ggplot(data_clean_year, aes(y = `Launched Year`)) +
+    geom_boxplot(fill = "steelblue", alpha = 0.5) +
+    labs(title = "Box Plot Tahun Peluncuran", y = "Tahun Peluncuran") +
+    theme_minimal()
+} else {
+  print("Tidak cukup data untuk membuat box plot.")
+}
+```
+
+Dari visualisasi data Box Plot diatas menunjukkan bahwa mayoritas perangkat dirilis antara 2020 hingga 2024, dengan median sekitar 2022. Beberapa perangkat dirilis lebih awal, dengan outlier di bawah 2018.
+
+# Mean (Rata-rata)
+
+```{r}
+mean(data$`Launched Price (USA)`)
+```
+
+Dari data perhitungan Mean di atas menunjukkan harga rata-rata ponsel dalam dataset Launched Price (USA) yaitu 625.5158 USD
+
+# Median (Nilai tengah)
+
+```{r}
+median(data$`Launched Price (USA)`)
+```
+
+Dari data perhitungan Median di atas menunjukkan nilai tengah yang telah diurutkan dari harga ponsel dalam dataset Launched Price (USA) yaitu 449 USD
+
+# Modus (Nilai yang paling sering muncul)
+
+```{r}
+x <- data$`Launched Price (USA)`
+
+modus <- function(x) {
+  uniqx <- unique(x)
+  uniqx[which.max(tabulate(match(x, uniqx)))]
+}
+
+modus(data$`Launched Price (USA)`)
+```
+
+Dari data di atas menunjukkan nilai yang paling sering mucul dari harga ponsel dalam dataset Launched Price (USA) yaitu 449 USD
+
+# Kuartile
+
+```{r}
+quantile(data$`Launched Price (USA)`)
+```
+
+Dari data quartil di atas memberikan gambaran penyebaran harga ponsel dalam dataset Launched Price (USA):
+Q1 (Kuartil 1 / 25%): 25% ponsel memiliki harga di nilai 250 USD
+Q2 (Kuartil 2 / 50%): Separuh ponsel memiliki harga di nilai 445 USD
+Q3 (Kuartil 3 / 75%): 75% ponsel memiliki harga di nilai 849 USD
+
+
+# Range
+
+```{r}
+range_value <- max(data$Price_USD, na.rm = TRUE) - min(data$Price_USD, na.rm = TRUE)
+range_value
+```
+
+Data menunjukkan bahwa Range atau Jangkauan dari Dataset ini memiliki perbedaan yang sangat besar antara harga ponsel termurah dan termahal. Selisihnya hampir menyentuh 40.000 USD.
+
+# Standar Deviasi
+
+```{r}
+std_dev <- sd(data$Price_USD, na.rm = TRUE)
+std_dev
+```
+
+Data menunjukkan bahwa Standar Deviasi dari Dataset ini sebesar 1,347.56 USD, yang berarti rata - rata harga ponsel terdistribusi sekitar ±1,347.56 USD dari nilai rata - rata harga dalam USD.
+
+# Varians
+
+```{r}
+variance <- var(data$Price_USD, na.rm = TRUE)
+variance
+```
+
+Varians berperan sebagai pengukur seberapa jauh angka - angka dalam data menyebar dari rata - rata. Dalam data ini varian yang dihasilkan cukup besar, yang artinya ada harga yang jauh lebih rendah atau lebih tinggi dibanding rata - rata, menyebabkan datanya menyebar luas.
+
+
